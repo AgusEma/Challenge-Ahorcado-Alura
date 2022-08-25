@@ -13,16 +13,24 @@
     adivinado: document.querySelector(".adivinado"),
     errado: document.querySelector(".errado")
   }
+
   function dibujar(juego) {
     // Actualizar la imagen del muneco
     var $elem
     $elem = $html.muneco
-    $elem.src = "img/imagen-0" + juego.estado + ".png"
+
+    var estado = juego.estado
+    if (estado === 8) {
+      estado = juego.previo
+    }
+
+    $elem.src = "img/imagen-0" + estado + ".png"
 
     // Letras adivinadas
     var palabra = juego.palabra
     var adivinado = juego.adivinado
     $elem = $html.adivinado
+    $elem.innerHTML = ""
     for (let letra of palabra) {
       let $span = document.createElement("span")
       let $txt = document.createTextNode("")
@@ -37,6 +45,7 @@
     // Letras erradas
     var errado = juego.errado
     $elem = $html.errado
+    $elem.innerHTML = ""
     for (let letra of errado) {
       let $span = document.createElement("span")
       let $txt = document.createTextNode(letra)
@@ -46,7 +55,48 @@
     }
   }
 
-  console.log(juego);
+  function adivinar(juego, letra) {
+    var estado = juego.estado
+    if (estado === 1 || estado === 8) {
+      return
+    }
+
+    var adivinado = juego.adivinado
+    var errado = juego.errado
+    if (adivinado.indexOf(letra) >= 0 || errado.indexOf(letra) >= 0) {
+      return
+    }
+
+    var palabra = juego.palabra
+    if (palabra.indexOf(letra) >= 0) {
+      let ganado = true
+      for (let l of palabra) {
+        if (adivinado.indexOf(l) < 0 && l !== letra) {
+          ganado = false
+          juego.previo = juego.estado
+          break
+        }
+      }
+      if (ganado) {
+        juego.estado = 8
+      }
+      adivinado.push(letra)
+    } else {
+      juego.estado--
+      errado.push(letra)
+    }
+  }
+
+  window.onkeypress = function adivinarLetra(e) {
+    var letra = e.key
+    letra = letra.toUpperCase()
+    if (/[^A-ZÑ]/.test(letra)) {
+      return
+    }
+    adivinar(juego, letra)
+    dibujar(juego)
+  }
+
   dibujar(juego);
 
 }())
